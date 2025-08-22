@@ -1,61 +1,61 @@
-# AWS Infrastructure for Registration Service
+# Infraestrutura AWS para o Registration Service
 
-This Terraform project provisions a full AWS environment for a **Registration Service** application using ECS Fargate, NLB, PostgreSQL, MSK, and API Gateway with VPC Link. It includes secure access to secrets via AWS Secrets Manager.
+Este projeto em **Terraform** provisiona um ambiente completo na AWS para a aplicação **Registration Service**, utilizando ECS Fargate, NLB, PostgreSQL, MSK e API Gateway com VPC Link. Inclui também acesso seguro a segredos via AWS Secrets Manager.  
 
 ---
 
-## Architecture Overview
+## Visão Geral da Arquitetura
 
-### Networking
+### Rede (Networking)
 
-- **VPC:** Custom VPC with public and private subnets.
-- **Public Subnets:** `10.0.1.0/24`, `10.0.2.0/24`  
-  - RDS PostgreSQL (publicly accessible)  
-  - NAT Gateway
-- **Private Subnets:** `10.0.11.0/24`, `10.0.12.0/24`  
-  - ECS Fargate tasks  
-  - Internal NLB  
-  - Kafka MSK cluster  
+- **VPC:** VPC customizada com sub-redes públicas e privadas.  
+- **Sub-redes Públicas:** `10.0.1.0/24`, `10.0.2.0/24`  
+  - RDS PostgreSQL (acessível publicamente)  
+  - NAT Gateway  
+- **Sub-redes Privadas:** `10.0.11.0/24`, `10.0.12.0/24`  
+  - Tarefas do ECS Fargate  
+  - NLB interno  
+  - Cluster Kafka MSK  
 
-### Compute
+### Computação (Compute)
 
-- **ECS Cluster:** Fargate-based, running the `registration-service` container.  
-- **ECR Repository:** Stores container images.  
-- **Task Definition:** Configured with environment secrets and logging to CloudWatch.  
+- **Cluster ECS:** Baseado em Fargate, executando o container `registration-service`.  
+- **Repositório ECR:** Armazena imagens de containers.  
+- **Definição de Tarefa (Task Definition):** Configurada com variáveis de ambiente seguras e logging no CloudWatch.  
 
-### Load Balancing
+### Balanceamento de Carga
 
-- **NLB (Internal):** Routes TCP traffic to ECS tasks on port 8080.  
+- **NLB (Interno):** Roteia tráfego TCP para tarefas ECS na porta 8080.  
 
-### API Layer
+### Camada de API
 
-- **API Gateway:** Public REST API.  
-- **Integration:** VPC Link to internal NLB.  
+- **API Gateway:** REST API pública.  
+- **Integração:** VPC Link para o NLB interno.  
 
-### Database
+### Banco de Dados
 
-- **PostgreSQL RDS (public):** Stores registration data.  
-- **Subnet:** Public  
-- **Security:** Access controlled via security group (`cidr_blocks = var.client_cidr`).  
+- **PostgreSQL RDS (público):** Armazena os dados de registro.  
+- **Sub-rede:** Pública  
+- **Segurança:** Acesso controlado via Security Group (`cidr_blocks = var.client_cidr`).  
 
 ### Kafka
 
-- **MSK Cluster:** Private, TLS encrypted.  
-- **Security Group:** Restricts access to VPC internal traffic only.  
+- **Cluster MSK:** Privado, com criptografia TLS.  
+- **Security Group:** Restringe acesso apenas ao tráfego interno da VPC.  
 
-### Secrets Management
+### Gestão de Segredos
 
-- **AWS Secrets Manager:** Stores database and Kafka credentials.  
-- Accessible by ECS tasks using IAM roles.  
+- **AWS Secrets Manager:** Armazena credenciais do banco de dados e do Kafka.  
+- Acessível pelas tarefas ECS via IAM roles.  
 
 ---
 
-## Terraform Modules & Resources
+## Módulos e Recursos do Terraform
 
 - **VPC:** `terraform-aws-modules/vpc/aws`  
 - **ECS & ECR:** Cluster, Service, Task Definition, IAM roles  
-- **API Gateway & VPC Link:** REST API, methods, integrations, stage  
+- **API Gateway & VPC Link:** REST API, métodos, integrações, stage  
 - **Networking:** Security Groups, NLB, Target Groups, Listeners  
-- **Database:** PostgreSQL RDS instance and subnet group  
-- **Kafka MSK:** Private cluster with encryption in transit  
-- **Secrets Manager:** `registration-service` secrets, Kafka truststore  
+- **Banco de Dados:** Instância PostgreSQL RDS e subnet group  
+- **Kafka MSK:** Cluster privado com criptografia em trânsito  
+- **Secrets Manager:** Secrets do `registration-service`, truststore do Kafka  
